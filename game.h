@@ -59,6 +59,18 @@ struct MOUNT { enum
 	SIZE
 };};
 
+struct EFFECT {
+	enum KIND {
+		NONE = 0,
+		REGEN,
+		POISON
+	};
+	KIND kind;
+	uint64_t _effect_stamp;
+	uint64_t length;
+	EFFECT* next;
+};
+
 struct SpriteReq
 {
 	enum KIND
@@ -106,6 +118,7 @@ struct Character
 	uint64_t action_stamp;
 	bool hit_tested;
 	int HP, MAX_HP;
+	EFFECT* effect;//buffs or debuffs on character
 
 	bool SetActionNone(uint64_t stamp);
 	bool SetActionAttack(uint64_t stamp);

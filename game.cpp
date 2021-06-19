@@ -2017,28 +2017,28 @@ void LoadSprites()
 		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,   5000, item_armor, grid_light_armor,   "Light Armor" },
 		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,  10000, item_armor, grid_heavy_armor,   "Heavy Armor" },
 
-		{ 'F', PLAYER_FOOD_INDEX::MEAT,     500, item_meat,     grid_meat,     "Meat" },
+		{ 'F', PLAYER_FOOD_INDEX::MEAT,     500, item_meat,     grid_meat,     "Meat" },//i 21
 		{ 'F', PLAYER_FOOD_INDEX::EGG,      250, item_egg,      grid_egg,      "Egg" },
 		{ 'F', PLAYER_FOOD_INDEX::CHEESE,   300, item_cheese,   grid_cheese,   "Cheese" },
-		{ 'F', PLAYER_FOOD_INDEX::BREAD,    500, item_bread,    grid_bread,    "Bread" },
+		{ 'F', PLAYER_FOOD_INDEX::BREAD,    500, item_bread,    grid_bread,    "Bread" },//i 24
 		{ 'F', PLAYER_FOOD_INDEX::BEET,     500, item_beet,     grid_beet,     "Beet" },
 		{ 'F', PLAYER_FOOD_INDEX::CUCUMBER, 250, item_cucumber, grid_cucumber, "Cucumber" },
-		{ 'F', PLAYER_FOOD_INDEX::CARROT,   250, item_carrot,   grid_carrot,   "Carrot" },
+		{ 'F', PLAYER_FOOD_INDEX::CARROT,   250, item_carrot,   grid_carrot,   "Carrot" },//i 27
 		{ 'F', PLAYER_FOOD_INDEX::APPLE,    200, item_apple,    grid_apple,    "Apple" },
 		{ 'F', PLAYER_FOOD_INDEX::CHERRY,   100, item_cherry,   grid_cherry,   "Cherry" },
-		{ 'F', PLAYER_FOOD_INDEX::PLUM,     100, item_plum,     grid_plum,     "Plum" },
+		{ 'F', PLAYER_FOOD_INDEX::PLUM,     100, item_plum,     grid_plum,     "Plum" },//i 30
 
 		{ 'D', PLAYER_DRINK_INDEX::MILK,    250, item_milk,     grid_milk,    "Milk" },
 		{ 'D', PLAYER_DRINK_INDEX::WATER,   250, item_water,    grid_water,   "Water" },
-		{ 'D', PLAYER_DRINK_INDEX::WINE,    250, item_wine,     grid_wine,    "Wine" },
+		{ 'D', PLAYER_DRINK_INDEX::WINE,    250, item_wine,     grid_wine,    "Wine" },//i 33
 
-		{ 'P', PLAYER_POTION_INDEX::POTION_RED,    150, item_red_potion,    grid_red_potion,   "Healing Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_RED,    150, item_red_potion,    grid_red_potion,   "Healing Potion" },//i 34
 		{ 'P', PLAYER_POTION_INDEX::POTION_BLUE,   150, item_blue_potion,   grid_blue_potion,  "Mana Potion" },
 		{ 'P', PLAYER_POTION_INDEX::POTION_GREEN,  150, item_green_potion,  grid_green_potion, "Unidentified Green Potion" },
-		{ 'P', PLAYER_POTION_INDEX::POTION_PINK,   150, item_pink_potion,   grid_pink_potion,  "Unidentified Pink Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_PINK,   150, item_pink_potion,   grid_pink_potion,  "Unidentified Pink Potion" },//i 37
 		{ 'P', PLAYER_POTION_INDEX::POTION_CYAN,   150, item_cyan_potion,   grid_cyan_potion,  "Unidentified Cyan Potion" },
 		{ 'P', PLAYER_POTION_INDEX::POTION_GOLD,   150, item_gold_potion,   grid_gold_potion,  "Unidentified Gold Potion" },
-		{ 'P', PLAYER_POTION_INDEX::POTION_GREY,   150, item_grey_potion,   grid_grey_potion,  "Unidentified Grey Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_GREY,   150, item_grey_potion,   grid_grey_potion,  "Unidentified Grey Potion" },//i 40
 
 		{ 0 }
 	};
@@ -4853,13 +4853,17 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 					player.SetMount(MOUNT::NONE);
 				}
 				else
-				if (a->sprite == item_proto_lib[34].sprite_2d)
+				if (a->sprite == item_proto_lib[34].sprite_2d)// healing potion hack
 				{
-					// healing potion hack
-					player.HP = player.MAX_HP;
+					EFFECT* effectTail = player.effect;
+					while (effectTail) {
+						effectTail = effectTail->next;
+					}
+					effectTail = (EFFECT*)malloc(sizeof(EFFECT));
+					effectTail->kind = EFFECT::KIND::REGEN;
+					effectTail->length = 3*1000*1000;//3 seconds
+					effectTail->_effect_stamp = _stamp;
 				}
-				
-
 				memmove(a,a+1,sizeof(ConsumeAnim)*(consume_anims-i-1));
 				consume_anims--;
 				i--;
