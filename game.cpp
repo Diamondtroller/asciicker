@@ -4731,7 +4731,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 		while (effectHead)
 		{
 			const uint64_t effectStep = 500000; //0.5s = 500000us
-			if ((_stamp - effectHead->_stamp) <= effectHead->_length)
+			if ((_stamp - effectHead->_stamp) < effectHead->_length + effectStep / 2)//give a half a step  for last effect step
 			{
 				//modifier to see how many times effect happened
 				int effectMod = (_stamp - effectHead->_prev) / effectStep;
