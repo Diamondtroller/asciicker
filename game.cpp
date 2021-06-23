@@ -1991,28 +1991,28 @@ void LoadSprites()
 	static const ItemProto item_proto[] = 
 	{
 	//  {kind, sub,                        weight, 3d_sprite,    2d_sprite,   desc}
-		{ 'W', PLAYER_WEAPON_INDEX::MACE,     20000, item_mace,     grid_big_mace,        "Giant's Mace" },
+		{ 'W', PLAYER_WEAPON_INDEX::MACE,     20000, item_mace,     grid_big_mace,        "Giant's Mace" },//i 0
 		{ 'W', PLAYER_WEAPON_INDEX::HAMMER,   20000, item_hammer,   grid_big_hammer,      "Giant's Hammer" },
 		{ 'W', PLAYER_WEAPON_INDEX::HAMMER,   20000, item_hammer,   grid_big_axe,         "Giant's Axe" },
-		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_alpha_sword,     "Alpha Sword" },
+		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_alpha_sword,     "Alpha Sword" },//i 3
 		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_plus_sword,      "Plus Sword" },
 		{ 'W', PLAYER_WEAPON_INDEX::MACE,     6000,  item_mace,     grid_small_mace,      "Small Mace" },
-		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_sword,     "Small Sword" },
+		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_sword,     "Small Sword" },//i 6
 		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_saber,     "Small Saber" },
 		{ 'W', PLAYER_WEAPON_INDEX::AXE,      3000,  item_axe,      grid_lumber_axe,      "Lumber Axe" },
-		{ 'W', PLAYER_WEAPON_INDEX::CROSSBOW, 4000,  item_crossbow, grid_crossbow,        "Crossbow" },
+		{ 'W', PLAYER_WEAPON_INDEX::CROSSBOW, 4000,  item_crossbow, grid_crossbow,        "Crossbow" },//i 9
 		{ 'W', PLAYER_WEAPON_INDEX::FLAIL,    5000,  item_flail,    grid_flail,	          "Flail" },
 
 		{ 'R', PLAYER_RING_INDEX::RING_WHITE, 10, item_white_ring, grid_white_ring,  "Unidentified White Ring" },
-		{ 'R', PLAYER_RING_INDEX::RING_CYAN,  10, item_cyan_ring,  grid_cyan_ring,   "Unidentified Cyan Ring" },
+		{ 'R', PLAYER_RING_INDEX::RING_CYAN,  10, item_cyan_ring,  grid_cyan_ring,   "Unidentified Cyan Ring" },//12
 		{ 'R', PLAYER_RING_INDEX::RING_GOLD,  10, item_gold_ring,  grid_gold_ring,   "Unidentified Gold Ring" },
 		{ 'R', PLAYER_RING_INDEX::RING_PINK,  10, item_pink_ring,  grid_pink_ring,   "Unidentified Pink Ring" },
 
-		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 1000, item_helmet, grid_light_helmet, "Light Helmet" },
+		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 1000, item_helmet, grid_light_helmet, "Light Helmet" },//i 15
 		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 2000, item_helmet, grid_heavy_helmet, "Heavy Helmet" },
 
 		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 4000, item_shield, grid_light_shield, "Light Shield" },
-		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 6000, item_shield, grid_heavy_shield, "Heavy Shield" },
+		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 6000, item_shield, grid_heavy_shield, "Heavy Shield" },//i 18
 
 		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,   5000, item_armor, grid_light_armor,   "Light Armor" },
 		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,  10000, item_armor, grid_heavy_armor,   "Heavy Armor" },
@@ -2040,7 +2040,7 @@ void LoadSprites()
 		{ 'P', PLAYER_POTION_INDEX::POTION_GOLD,   150, item_gold_potion,   grid_gold_potion,  "Unidentified Gold Potion" },
 		{ 'P', PLAYER_POTION_INDEX::POTION_GREY,   150, item_grey_potion,   grid_grey_potion,  "Unidentified Grey Potion" },//i 40
 
-		{ 0 }
+		{ 0 }//i 41 is empty
 	};
 
 	item_proto_lib = item_proto;
@@ -2721,7 +2721,8 @@ void Game::ExecuteItem(int my_item)
 
 				a->pos[0] = inventory.my_item[my_item].xy[0];
 				a->pos[1] = inventory.my_item[my_item].xy[1];
-				a->sprite = inventory.my_item[my_item].item->proto->sprite_2d;
+				//a->sprite = inventory.my_item[my_item].item->proto->sprite_2d;
+				a->item = inventory.my_item[my_item].item->proto;
 				a->stamp = stamp;
 				consume_anims++;
 
@@ -4119,7 +4120,6 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 					float dy = h->target->pos[1] - pio.pos[1];
 					pio.player_dir = atan2(dy, dx) * 180 / M_PI /* + phys->yaw == ZERO*/ + 90;
 				}
-
 				h->pos[0] = pio.pos[0];
 				h->pos[1] = pio.pos[1];
 				h->pos[2] = pio.pos[2];
@@ -4725,8 +4725,76 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 				}
 			}
 		}
-
-		if (!h->next && server && h!=&player)
+		//Updating effects of chars
+		EFFECT *effectHead;
+		effectHead = h->effect;
+		while (effectHead)
+		{
+			const uint64_t effectStep = 500000; //0.5s = 500000us
+			if ((_stamp - effectHead->_stamp) <= effectHead->_length)
+			{
+				//modifier to see how many times effect happened
+				int effectMod = (_stamp - effectHead->_prev) / effectStep;
+				//branchless weirdness :), clamping the loop to maximal value
+				effectMod += (-effectMod+effectHead->_length/effectStep)*(effectMod > effectHead->_length/effectStep);
+				if (effectMod)
+				{
+					switch (effectHead->kind)
+					{
+					case EFFECT::KIND::REGEN:
+					{
+						h->HP += 10;
+						if (h->HP > h->MAX_HP)
+						{
+							h->HP = h->MAX_HP;
+						}
+					}
+					break;
+					case EFFECT::KIND::POISON:
+					{
+						h->HP -= 10;
+						if (h->HP < 0)
+						{
+							h->HP = 0;
+							h->SetActionDead(_stamp);
+						}
+					}
+					break;
+					}
+					effectHead->_prev = _stamp;
+				}
+			}
+			else
+			{
+				//Removing an expired effect
+				if (effectHead->prev && effectHead->next)
+				{
+					effectHead->prev->next = effectHead->next;
+					effectHead->next->prev = effectHead->prev;
+				}
+				if (h->effect == effectHead)
+				{
+					h->effect = 0;
+					free(effectHead);
+					effectHead = 0;
+				}
+				else
+				{
+					EFFECT *tmp = effectHead->prev;
+					free(effectHead);
+					effectHead = tmp;
+				}
+			}
+			if (effectHead)
+			{
+				effectHead = effectHead->next;
+			}
+			else
+			{
+				effectHead = 0;
+			}
+		}
+		if (!h->next && server && h != &player)
 			h = &player; // what a hack! -- just forcing this player to handle its own talkbox (server case)
 		else
 			h = h->next;
@@ -4838,31 +4906,65 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 		{
 			ConsumeAnim* a = consume_anim + i;
 			int elaps = (_stamp - a->stamp) / 50000; // 20 frames a sec (0.25 sec duration for 5x5 sprite)
-			int max_elaps = a->sprite->atlas->height;
+			int max_elaps = a->item->sprite_2d->atlas->height;
 			if (elaps >= max_elaps)
 			{
-				if (a->sprite == item_proto_lib[40].sprite_2d)
-				{
-					// grey potion hack
-					player.SetMount(MOUNT::WOLF);
-				}
-				else
-				if (a->sprite == item_proto_lib[39].sprite_2d)
-				{
-					// gold potion hack
-					player.SetMount(MOUNT::NONE);
-				}
-				else
-				if (a->sprite == item_proto_lib[34].sprite_2d)// healing potion hack
-				{
-					EFFECT* effectTail = player.effect;
-					while (effectTail) {
-						effectTail = effectTail->next;
-					}
-					effectTail = (EFFECT*)malloc(sizeof(EFFECT));
-					effectTail->kind = EFFECT::KIND::REGEN;
-					effectTail->length = 3*1000*1000;//3 seconds
-					effectTail->_effect_stamp = _stamp;
+				switch (a->item->kind) {
+					case 'P':
+						switch (a->item->sub_kind) {
+							case PLAYER_POTION_INDEX::POTION_GREY:
+								player.SetMount(MOUNT::WOLF);
+								break;
+							case PLAYER_POTION_INDEX::POTION_GOLD:
+								player.SetMount(MOUNT::NONE);
+								break;
+							case PLAYER_POTION_INDEX::POTION_RED:
+								{
+								EFFECT* effectHead  = player.effect;
+								EFFECT* prev = 0;
+								while (effectHead) {
+									prev = effectHead;
+									effectHead = prev->next;
+								}
+								effectHead = (EFFECT*)malloc(sizeof(EFFECT));
+								effectHead->kind = EFFECT::KIND::REGEN;
+								effectHead->_length = 5*1000000;//5 seconds
+								effectHead->_stamp = _stamp;
+								effectHead->prev = prev;
+								effectHead->next = 0;
+								if(effectHead->prev) {
+									effectHead->prev->next=effectHead;
+								}
+								if(!player.effect) {
+									player.effect = effectHead;
+								}
+								}
+								break;
+							//copied from above :/
+							case PLAYER_POTION_INDEX::POTION_GREEN:
+								{
+								EFFECT* effectHead  = player.effect;
+								EFFECT* prev = 0;
+								while (effectHead) {
+									prev = effectHead;
+									effectHead = prev->next;
+								}
+								effectHead = (EFFECT*)malloc(sizeof(EFFECT));
+								effectHead->kind = EFFECT::KIND::POISON;
+								effectHead->_length = 5*1000000;//5 seconds
+								effectHead->_stamp = _stamp;
+								effectHead->prev = prev;
+								effectHead->next = 0;
+								if(effectHead->prev) {
+									effectHead->prev->next=effectHead;
+								}
+								if(!player.effect) {
+									player.effect = effectHead;
+								}
+								}
+								break;
+						}
+						break;
 				}
 				memmove(a,a+1,sizeof(ConsumeAnim)*(consume_anims-i-1));
 				consume_anims--;
@@ -4873,7 +4975,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 			int ix = inventory.layout_x + a->pos[0]*4 + 4;
 			int iy = inventory.layout_y + a->pos[1]*4 + inventory.layout_height - 6 - (inventory.height*4-1) + scroll;
 
-			int clip[4] = { ix, iy, ix + a->sprite->atlas->width, iy + a->sprite->atlas->height };
+			int clip[4] = { ix, iy, ix + a->item->sprite_2d->atlas->width, iy + a->item->sprite_2d->atlas->height };
 			if (clip[0] < dst_clip[0])
 				clip[0] = dst_clip[0];
 			if (clip[1] < dst_clip[1])
@@ -4883,7 +4985,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 			if (clip[3] > dst_clip[3])
 				clip[3] = dst_clip[3];
 
-			BlitSprite(ptr, width, height, a->sprite->atlas, ix, iy + elaps, clip, false, 0);
+			BlitSprite(ptr, width, height, a->item->sprite_2d->atlas, ix, iy + elaps, clip, false, 0);
 		}
 
 		int focus_rect[4];

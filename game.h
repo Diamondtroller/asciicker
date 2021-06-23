@@ -66,9 +66,11 @@ struct EFFECT {
 		POISON
 	};
 	KIND kind;
-	uint64_t _effect_stamp;
-	uint64_t length;
+	uint64_t _stamp;
+	uint64_t _length;
+	uint64_t _prev;
 	EFFECT* next;
+	EFFECT* prev;
 };
 
 struct SpriteReq
@@ -320,7 +322,7 @@ struct Game
 	struct ConsumeAnim
 	{
 		int pos[2];
-		Sprite* sprite;
+		const ItemProto* item;
 		uint64_t stamp;
 	};
 

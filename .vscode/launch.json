@@ -5,54 +5,12 @@
     "version": "0.2.0",
     "configurations": [
          {
-            "name": "(gdb) Launch",
+            "name": "Launch game",
             "type": "cppdbg",
             "request": "launch",
-
-           /*
-            "program": "${workspaceFolder}/.run/asciiid",
-            "args": [],
-            "externalConsole": true,
-           */
-
-           /*
-           "program": "${workspaceFolder}/.run/game_term",
-           "args": [],
-           "externalConsole": true,           
-           */
-
-            /*
-            "program": "${workspaceFolder}/.run/server",
-            "args": [],
-            "externalConsole": true,
-            */
-
-            /*
-            "program": "${workspaceFolder}/.run/game",
-            "args": ["-term"],
-            "externalConsole": true,
-            */
-
-            /*
-            "program": "${workspaceFolder}/.run/game",
-            "args": [],
-            "externalConsole": true,
-            */
-
-            /*
-            "program": "${workspaceFolder}/.run/game",
-            "args": ["-url","gumix@asciicker.com:80/ws/y7/"],
-            "externalConsole": true,
-            */
-            
-            
-        //    /*
             "program": "${workspaceFolder}/.run/game",
             "args": ["-url","gumix@localhost:8080/ws/y7/"],
             "externalConsole": true,
-        //    */
-
-            // "cwd": "${workspaceFolder}",
             "cwd": "/",
 
             "stopAtEntry": false,
@@ -64,7 +22,71 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            //"preLaunchTask": "build" //can build and launch at once
+        },
+        {
+            "name": "Launch game_term",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/.run/game_term",
+            "args": [],
+            "externalConsole": true,
+            "cwd": "/",
+
+            "stopAtEntry": false,
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build"
+        },
+        {
+            "name": "Launch asciiid",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/.run/asciiid",
+            "args": [],
+            "externalConsole": true,
+            "cwd": "/",
+
+            "stopAtEntry": false,
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            //"preLaunchTask": "build" //can build and launch at once
+        },
+        {
+            "name": "Launch server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/.run/server",
+            "args": [],
+            "externalConsole": true,
+            "cwd": "/",
+
+            "stopAtEntry": false,
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            //"preLaunchTask": "build" //can build and launch at once
         }
     ]
 }
