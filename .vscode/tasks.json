@@ -28,6 +28,18 @@
             }
         },
         {
+            "label": "build game",
+            "type": "shell",
+            "command": "make -j16 -f makefile_game",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
             "label": "clean",
             "type": "shell",
             "command": "./clean.sh",

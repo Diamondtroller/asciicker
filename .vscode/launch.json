@@ -87,6 +87,27 @@
                 }
             ],
             //"preLaunchTask": "build" //can build and launch at once
+        },
+        {
+            "name": "Build and Launch game",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/.run/game",
+            "args": ["-url","gumix@localhost:8080/ws/y7/"],
+            "externalConsole": false,
+            "cwd": "/",
+
+            "stopAtEntry": false,
+            "environment": [],
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": false
+                }
+            ],
+            "preLaunchTask": "build game" //can build and launch at once
         }
     ]
 }

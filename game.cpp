@@ -2159,7 +2159,7 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 
 			enemy->MAX_HP = 100;
 			enemy->HP = (i + 1) * enemy->MAX_HP / eg->alive_max;
-
+			enemy->effect = 0;
 			enemy->enemy = true;
 
 			//enemy->master = enemy_master;
@@ -2431,7 +2431,7 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 		// init buddy!
 		buddy->MAX_HP = 100;
 		buddy->HP = (i+1) * buddy->MAX_HP / buddies;
-
+		buddy->effect=0;
 		buddy->enemy = false;
 		buddy->master = &g->player;
 		buddy->target = buddy->master;
@@ -3186,6 +3186,28 @@ void Game::ScreenToCell(int p[2]) const
 {
 	p[0] = (2*p[0] - input.size[0] + render_size[0] * font_size[0]) / (2 * font_size[0]);
 	p[1] = (input.size[1]-1 - 2*p[1] + render_size[1] * font_size[1]) / (2 * font_size[1]);
+}
+
+void Character::AddEffect(EFFECT* e) 
+{
+	EFFECT* effectHead = this->effect;
+	EFFECT* prev = 0;
+	while (effectHead)
+	{
+		prev = effectHead;
+		effectHead = prev->next;
+	}
+	effectHead = e;
+	effectHead->prev = prev;
+	effectHead->next = 0;
+	if (effectHead->prev)
+	{
+		effectHead->prev->next = effectHead;
+	}
+	if (!(this->effect))
+	{
+		this->effect = effectHead;
+	}
 }
 
 bool Character::SetActionNone(uint64_t stamp)
@@ -3999,7 +4021,16 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 										{
 											int hp = h->target->HP;
 											h->target->HP -= rand() % 100;
-
+											if (rand() % 3 == 0)
+											{
+												EFFECT* Bleed = createEffect(
+													EFFECT::KIND::POISON,
+													_stamp,
+													(10+rand()%6)*1000000,
+													(25+rand()%6)*100000
+												);
+												h->target->AddEffect(Bleed);
+											}
 											float d = 15.0f / sqrtf(dx*dx + dy * dy);
 											h->target->impulse[0] += dx * d; 
 											h->target->impulse[1] += dy * d;
@@ -4213,7 +4244,15 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 								int hp = h->target->HP;
 								h->target->HP -= rand() % 100;
 								//h->target->HP = 0;
-
+								if (rand() % 3 == 0)
+								{
+									EFFECT *Bleed = createEffect(
+										EFFECT::KIND::POISON,
+										_stamp,
+										(10 + rand() % 6) * 1000000,
+										3000000);
+									h->target->AddEffect(Bleed);
+								}
 								float d = 15.0f / sqrtf(dx*dx + dy * dy);
 								h->target->impulse[0] += dx * d;
 								h->target->impulse[1] += dy * d;
@@ -4730,13 +4769,12 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 		effectHead = h->effect;
 		while (effectHead)
 		{
-			const uint64_t effectStep = 500000; //0.5s = 500000us
-			if ((_stamp - effectHead->_stamp) < effectHead->_length + effectStep / 2)//give a half a step  for last effect step
+			if ((_stamp - effectHead->_stamp) < effectHead->_length + effectHead->_step / 2)//give a half a step  for last effect step
 			{
 				//modifier to see how many times effect happened
-				int effectMod = (_stamp - effectHead->_prev) / effectStep;
-				//branchless weirdness :), clamping the loop to maximal value
-				effectMod += (-effectMod+effectHead->_length/effectStep)*(effectMod > effectHead->_length/effectStep);
+				int effectMod = (_stamp - effectHead->_prev) / effectHead->_step;
+				//clamping to max theoretical value if less than 1 fps
+				if ((effectMod > effectHead->_length/effectHead->_step)) effectMod = effectHead->_length/effectHead->_step;				
 				if (effectMod)
 				{
 					switch (effectHead->kind)
@@ -4763,35 +4801,32 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 					}
 					effectHead->_prev = _stamp;
 				}
+				effectHead=effectHead->next;
 			}
 			else
 			{
 				//Removing an expired effect
-				if (effectHead->prev && effectHead->next)
+				if (effectHead == h->effect)//if current effect is first of ll
 				{
-					effectHead->prev->next = effectHead->next;
-					effectHead->next->prev = effectHead->prev;
+					if (h->effect->next)//if there are more effects
+					{
+						h->effect = h->effect->next;
+						DeleteEffect(effectHead);
+						effectHead=h->effect;
+					}
+					else
+					{
+						h->effect = 0;
+						DeleteEffect(effectHead);
+						effectHead = 0;
+					}
 				}
-				if (h->effect == effectHead)
+				else //effectHead not first element
 				{
-					h->effect = 0;
-					free(effectHead);
-					effectHead = 0;
+					EFFECT* n = effectHead->next;
+					DeleteEffect(effectHead);
+					effectHead = n;
 				}
-				else
-				{
-					EFFECT *tmp = effectHead->prev;
-					free(effectHead);
-					effectHead = tmp;
-				}
-			}
-			if (effectHead)
-			{
-				effectHead = effectHead->next;
-			}
-			else
-			{
-				effectHead = 0;
 			}
 		}
 		if (!h->next && server && h != &player)
@@ -4920,47 +4955,25 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 								break;
 							case PLAYER_POTION_INDEX::POTION_RED:
 								{
-								EFFECT* effectHead  = player.effect;
-								EFFECT* prev = 0;
-								while (effectHead) {
-									prev = effectHead;
-									effectHead = prev->next;
-								}
-								effectHead = (EFFECT*)malloc(sizeof(EFFECT));
-								effectHead->kind = EFFECT::KIND::REGEN;
-								effectHead->_length = 5*1000000;//5 seconds
-								effectHead->_stamp = _stamp;
-								effectHead->prev = prev;
-								effectHead->next = 0;
-								if(effectHead->prev) {
-									effectHead->prev->next=effectHead;
-								}
-								if(!player.effect) {
-									player.effect = effectHead;
-								}
+								EFFECT* Heal = createEffect(
+									EFFECT::KIND::REGEN,
+									_stamp,
+									5*1000000,
+									500000
+								);
+								player.AddEffect(Heal);
 								}
 								break;
 							//copied from above :/
 							case PLAYER_POTION_INDEX::POTION_GREEN:
 								{
-								EFFECT* effectHead  = player.effect;
-								EFFECT* prev = 0;
-								while (effectHead) {
-									prev = effectHead;
-									effectHead = prev->next;
-								}
-								effectHead = (EFFECT*)malloc(sizeof(EFFECT));
-								effectHead->kind = EFFECT::KIND::POISON;
-								effectHead->_length = 5*1000000;//5 seconds
-								effectHead->_stamp = _stamp;
-								effectHead->prev = prev;
-								effectHead->next = 0;
-								if(effectHead->prev) {
-									effectHead->prev->next=effectHead;
-								}
-								if(!player.effect) {
-									player.effect = effectHead;
-								}
+								EFFECT* Poison = createEffect(
+									EFFECT::KIND::POISON,
+									_stamp,
+									5*1000000,
+									500000
+								);
+								player.AddEffect(Poison);
 								}
 								break;
 						}

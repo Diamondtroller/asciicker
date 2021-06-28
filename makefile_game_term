@@ -15,6 +15,7 @@ SRCS :=	game.cpp \
 		inventory.cpp \
 		physics.cpp \
 		sprite.cpp \
+		effect.cpp \
 		upng.c \
 		tinfl.c \
 		rgba8.cpp \

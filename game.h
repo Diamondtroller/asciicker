@@ -7,6 +7,7 @@
 #include "terrain.h"
 
 #include "inventory.h"
+#include "effect.h"
 #include "network.h"
 
 extern char player_name[];
@@ -59,19 +60,6 @@ struct MOUNT { enum
 	SIZE
 };};
 
-struct EFFECT {
-	enum KIND {
-		NONE = 0,
-		REGEN,
-		POISON
-	};
-	KIND kind;
-	uint64_t _stamp;
-	uint64_t _length;
-	uint64_t _prev;
-	EFFECT* next;
-	EFFECT* prev;
-};
 
 struct SpriteReq
 {
@@ -120,6 +108,8 @@ struct Character
 	uint64_t action_stamp;
 	bool hit_tested;
 	int HP, MAX_HP;
+
+	void AddEffect(EFFECT* e);
 	EFFECT* effect;//buffs or debuffs on character
 
 	bool SetActionNone(uint64_t stamp);

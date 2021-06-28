@@ -18,6 +18,7 @@ SRCS :=	asciiid.cpp \
 		inventory.cpp \
 		physics.cpp \
 		sprite.cpp \
+		effect.cpp \
 		texheap.cpp \
 		rgba8.cpp \
 		upng.c \

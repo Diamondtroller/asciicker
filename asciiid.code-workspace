@@ -23,7 +23,9 @@
 			"string_view": "cpp",
 			"initializer_list": "cpp",
 			"utility": "cpp",
-			"typeinfo": "cpp"
+			"typeinfo": "cpp",
+			"istream": "cpp",
+			"ostream": "cpp"
 		}
 	}
 }
