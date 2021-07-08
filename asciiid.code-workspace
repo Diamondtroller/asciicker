@@ -25,7 +25,9 @@
 			"utility": "cpp",
 			"typeinfo": "cpp",
 			"istream": "cpp",
-			"ostream": "cpp"
+			"ostream": "cpp",
+			"map": "cpp",
+			"fstream": "cpp"
 		}
 	}
 }

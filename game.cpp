@@ -1987,62 +1987,64 @@ void LoadSprites()
 	Sprite* grid_cyan_potion = LOAD_SPRITE("grid-cyan-potion.xp");
 	Sprite* grid_gold_potion = LOAD_SPRITE("grid-gold-potion.xp");
 	Sprite* grid_grey_potion = LOAD_SPRITE("grid-grey-potion.xp");
-
+	static const WeaponInfo weapon_info[] = {
+		{20, 1.0f},//Alpha sword
+		{35, 1.0f}//Plus sword
+	};
 	static const ItemProto item_proto[] = 
 	{
-	//  {kind, sub,                        weight, 3d_sprite,    2d_sprite,   desc}
-		{ 'W', PLAYER_WEAPON_INDEX::MACE,     20000, item_mace,     grid_big_mace,        "Giant's Mace" },//i 0
-		{ 'W', PLAYER_WEAPON_INDEX::HAMMER,   20000, item_hammer,   grid_big_hammer,      "Giant's Hammer" },
-		{ 'W', PLAYER_WEAPON_INDEX::HAMMER,   20000, item_hammer,   grid_big_axe,         "Giant's Axe" },
-		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_alpha_sword,     "Alpha Sword" },//i 3
-		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_plus_sword,      "Plus Sword" },
-		{ 'W', PLAYER_WEAPON_INDEX::MACE,     6000,  item_mace,     grid_small_mace,      "Small Mace" },
-		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_sword,     "Small Sword" },//i 6
-		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_saber,     "Small Saber" },
-		{ 'W', PLAYER_WEAPON_INDEX::AXE,      3000,  item_axe,      grid_lumber_axe,      "Lumber Axe" },
-		{ 'W', PLAYER_WEAPON_INDEX::CROSSBOW, 4000,  item_crossbow, grid_crossbow,        "Crossbow" },//i 9
-		{ 'W', PLAYER_WEAPON_INDEX::FLAIL,    5000,  item_flail,    grid_flail,	          "Flail" },
+	//  {kind, sub,                         weight, 3d_sprite,       2d_sprite,       data, desc}
+		{ 'W', PLAYER_WEAPON_INDEX::MACE,     20000, item_mace,     grid_big_mace,    0,  "Giant's Mace" },//i 0
+		{ 'W', PLAYER_WEAPON_INDEX::HAMMER,   20000, item_hammer,   grid_big_hammer,  0,  "Giant's Hammer" },
+		{ 'W', PLAYER_WEAPON_INDEX::HAMMER,   20000, item_hammer,   grid_big_axe,     0,  "Giant's Axe" },
+		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_alpha_sword, (void*)&weapon_info[0],  "Alpha Sword" },//i 3
+		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    5000,  item_sword,    grid_plus_sword,  (void*)&weapon_info[1],  "Plus Sword" },
+		{ 'W', PLAYER_WEAPON_INDEX::MACE,     6000,  item_mace,     grid_small_mace,  0,  "Small Mace" },
+		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_sword, 0,  "Small Sword" },//i 6
+		{ 'W', PLAYER_WEAPON_INDEX::SWORD,    3000,  item_sword,    grid_small_saber, 0,  "Small Saber" },
+		{ 'W', PLAYER_WEAPON_INDEX::AXE,      3000,  item_axe,      grid_lumber_axe,  0,  "Lumber Axe" },
+		{ 'W', PLAYER_WEAPON_INDEX::CROSSBOW, 4000,  item_crossbow, grid_crossbow,    0,  "Crossbow" },//i 9
+		{ 'W', PLAYER_WEAPON_INDEX::FLAIL,    5000,  item_flail,    grid_flail,	      0,  "Flail" },
 
-		{ 'R', PLAYER_RING_INDEX::RING_WHITE, 10, item_white_ring, grid_white_ring,  "Unidentified White Ring" },
-		{ 'R', PLAYER_RING_INDEX::RING_CYAN,  10, item_cyan_ring,  grid_cyan_ring,   "Unidentified Cyan Ring" },//12
-		{ 'R', PLAYER_RING_INDEX::RING_GOLD,  10, item_gold_ring,  grid_gold_ring,   "Unidentified Gold Ring" },
-		{ 'R', PLAYER_RING_INDEX::RING_PINK,  10, item_pink_ring,  grid_pink_ring,   "Unidentified Pink Ring" },
+		{ 'R', PLAYER_RING_INDEX::RING_WHITE, 10, item_white_ring, grid_white_ring, 0, "Unidentified White Ring" },
+		{ 'R', PLAYER_RING_INDEX::RING_CYAN,  10, item_cyan_ring,  grid_cyan_ring,  0, "Unidentified Cyan Ring" },//12
+		{ 'R', PLAYER_RING_INDEX::RING_GOLD,  10, item_gold_ring,  grid_gold_ring,  0, "Unidentified Gold Ring" },
+		{ 'R', PLAYER_RING_INDEX::RING_PINK,  10, item_pink_ring,  grid_pink_ring,  0, "Unidentified Pink Ring" },
 
-		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 1000, item_helmet, grid_light_helmet, "Light Helmet" },//i 15
-		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 2000, item_helmet, grid_heavy_helmet, "Heavy Helmet" },
+		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 1000, item_helmet, grid_light_helmet, 0, "Light Helmet" },//i 15
+		{ 'H', PLAYER_HELMET_INDEX::HELMET_NORMAL, 2000, item_helmet, grid_heavy_helmet, 0, "Heavy Helmet" },
 
-		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 4000, item_shield, grid_light_shield, "Light Shield" },
-		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 6000, item_shield, grid_heavy_shield, "Heavy Shield" },//i 18
+		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 4000, item_shield, grid_light_shield, 0, "Light Shield" },
+		{ 'S', PLAYER_SHIELD_INDEX::SHIELD_NORMAL, 6000, item_shield, grid_heavy_shield, 0, "Heavy Shield" },//i 18
 
-		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,   5000, item_armor, grid_light_armor,   "Light Armor" },
-		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,  10000, item_armor, grid_heavy_armor,   "Heavy Armor" },
+		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,   5000, item_armor, grid_light_armor, 0, "Light Armor" },
+		{ 'A', PLAYER_ARMOR_INDEX::ARMOR_NORMAL,  10000, item_armor, grid_heavy_armor, 0, "Heavy Armor" },
 
-		{ 'F', PLAYER_FOOD_INDEX::MEAT,     500, item_meat,     grid_meat,     "Meat" },//i 21
-		{ 'F', PLAYER_FOOD_INDEX::EGG,      250, item_egg,      grid_egg,      "Egg" },
-		{ 'F', PLAYER_FOOD_INDEX::CHEESE,   300, item_cheese,   grid_cheese,   "Cheese" },
-		{ 'F', PLAYER_FOOD_INDEX::BREAD,    500, item_bread,    grid_bread,    "Bread" },//i 24
-		{ 'F', PLAYER_FOOD_INDEX::BEET,     500, item_beet,     grid_beet,     "Beet" },
-		{ 'F', PLAYER_FOOD_INDEX::CUCUMBER, 250, item_cucumber, grid_cucumber, "Cucumber" },
-		{ 'F', PLAYER_FOOD_INDEX::CARROT,   250, item_carrot,   grid_carrot,   "Carrot" },//i 27
-		{ 'F', PLAYER_FOOD_INDEX::APPLE,    200, item_apple,    grid_apple,    "Apple" },
-		{ 'F', PLAYER_FOOD_INDEX::CHERRY,   100, item_cherry,   grid_cherry,   "Cherry" },
-		{ 'F', PLAYER_FOOD_INDEX::PLUM,     100, item_plum,     grid_plum,     "Plum" },//i 30
+		{ 'F', PLAYER_FOOD_INDEX::MEAT,     500, item_meat,     grid_meat,     0, "Meat" },//i 21
+		{ 'F', PLAYER_FOOD_INDEX::EGG,      250, item_egg,      grid_egg,      0, "Egg" },
+		{ 'F', PLAYER_FOOD_INDEX::CHEESE,   300, item_cheese,   grid_cheese,   0, "Cheese" },
+		{ 'F', PLAYER_FOOD_INDEX::BREAD,    500, item_bread,    grid_bread,    0, "Bread" },//i 24
+		{ 'F', PLAYER_FOOD_INDEX::BEET,     500, item_beet,     grid_beet,     0, "Beet" },
+		{ 'F', PLAYER_FOOD_INDEX::CUCUMBER, 250, item_cucumber, grid_cucumber, 0, "Cucumber" },
+		{ 'F', PLAYER_FOOD_INDEX::CARROT,   250, item_carrot,   grid_carrot,   0, "Carrot" },//i 27
+		{ 'F', PLAYER_FOOD_INDEX::APPLE,    200, item_apple,    grid_apple,    0, "Apple" },
+		{ 'F', PLAYER_FOOD_INDEX::CHERRY,   100, item_cherry,   grid_cherry,   0, "Cherry" },
+		{ 'F', PLAYER_FOOD_INDEX::PLUM,     100, item_plum,     grid_plum,     0, "Plum" },//i 30
 
-		{ 'D', PLAYER_DRINK_INDEX::MILK,    250, item_milk,     grid_milk,    "Milk" },
-		{ 'D', PLAYER_DRINK_INDEX::WATER,   250, item_water,    grid_water,   "Water" },
-		{ 'D', PLAYER_DRINK_INDEX::WINE,    250, item_wine,     grid_wine,    "Wine" },//i 33
+		{ 'D', PLAYER_DRINK_INDEX::MILK,    250, item_milk,     grid_milk,  0, "Milk" },
+		{ 'D', PLAYER_DRINK_INDEX::WATER,   250, item_water,    grid_water, 0, "Water" },
+		{ 'D', PLAYER_DRINK_INDEX::WINE,    250, item_wine,     grid_wine,  0, "Wine" },//i 33
 
-		{ 'P', PLAYER_POTION_INDEX::POTION_RED,    150, item_red_potion,    grid_red_potion,   "Healing Potion" },//i 34
-		{ 'P', PLAYER_POTION_INDEX::POTION_BLUE,   150, item_blue_potion,   grid_blue_potion,  "Mana Potion" },
-		{ 'P', PLAYER_POTION_INDEX::POTION_GREEN,  150, item_green_potion,  grid_green_potion, "Unidentified Green Potion" },
-		{ 'P', PLAYER_POTION_INDEX::POTION_PINK,   150, item_pink_potion,   grid_pink_potion,  "Unidentified Pink Potion" },//i 37
-		{ 'P', PLAYER_POTION_INDEX::POTION_CYAN,   150, item_cyan_potion,   grid_cyan_potion,  "Unidentified Cyan Potion" },
-		{ 'P', PLAYER_POTION_INDEX::POTION_GOLD,   150, item_gold_potion,   grid_gold_potion,  "Unidentified Gold Potion" },
-		{ 'P', PLAYER_POTION_INDEX::POTION_GREY,   150, item_grey_potion,   grid_grey_potion,  "Unidentified Grey Potion" },//i 40
+		{ 'P', PLAYER_POTION_INDEX::POTION_RED,    150, item_red_potion,    grid_red_potion,   0, "Healing Potion" },//i 34
+		{ 'P', PLAYER_POTION_INDEX::POTION_BLUE,   150, item_blue_potion,   grid_blue_potion,  0, "Mana Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_GREEN,  150, item_green_potion,  grid_green_potion, 0, "Unidentified Green Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_PINK,   150, item_pink_potion,   grid_pink_potion,  0, "Unidentified Pink Potion" },//i 37
+		{ 'P', PLAYER_POTION_INDEX::POTION_CYAN,   150, item_cyan_potion,   grid_cyan_potion,  0, "Unidentified Cyan Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_GOLD,   150, item_gold_potion,   grid_gold_potion,  0, "Unidentified Gold Potion" },
+		{ 'P', PLAYER_POTION_INDEX::POTION_GREY,   150, item_grey_potion,   grid_grey_potion,  0, "Unidentified Grey Potion" },//i 40
 
 		{ 0 }//i 41 is empty
 	};
-
 	item_proto_lib = item_proto;
 }
 
@@ -4243,7 +4245,6 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 							{
 								int hp = h->target->HP;
 								h->target->HP -= rand() % 100;
-								//h->target->HP = 0;
 								if (rand() % 3 == 0)
 								{
 									EFFECT *Bleed = createEffect(

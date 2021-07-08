@@ -4,6 +4,7 @@ struct ItemProto;
 struct Item;
 
 extern const ItemProto* item_proto_lib;
+extern const WeaponInfo* weapon_info;
 
 Item* CreateItem();
 void DestroyItem(Item* item);
@@ -69,6 +70,8 @@ struct ItemProto // loaded from items.txt file
 	Sprite* sprite_3d;
 	Sprite* sprite_2d; // if null item cannot be picked up
 
+	void* data;//variables specific to kind and possibly subkind
+
 	const char* desc;
 
 	// extras ?
@@ -124,6 +127,11 @@ enum PLAYER_WEAPON_INDEX
 	HAMMER, // big ace too
 	AXE, // only lumber
 	FLAIL,
+};
+
+struct WeaponInfo {
+	int damage;
+	float impulse_mod;
 };
 
 enum PLAYER_SHIELD_INDEX
