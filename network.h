@@ -89,6 +89,7 @@ struct STRUCT_BRC_JOIN
 	float dir;
 	uint16_t id;
 	uint16_t sprite;
+	uint8_t weapon_id;
 	char name[32];
 };
 
@@ -108,6 +109,7 @@ struct STRUCT_REQ_POSE
 	float pos[3];
 	float dir;
 	uint16_t sprite;
+	uint8_t weapon_id;
 };
 
 struct STRUCT_BRC_POSE
@@ -119,6 +121,7 @@ struct STRUCT_BRC_POSE
 	float pos[3];
 	float dir;
 	uint16_t sprite;
+	uint8_t weapon_id;
 	uint16_t id;
 };
 

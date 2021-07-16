@@ -77,7 +77,7 @@ struct SpriteReq
 	int armor;
 	int helmet;
 	int shield;
-	int weapon;
+	int weapon;//itemproto index to weapon
 };
 
 struct ItemOwner

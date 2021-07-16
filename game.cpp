@@ -1101,7 +1101,7 @@ bool Server::Proc(const uint8_t* ptr, int size)
 			h->req.armor = (join->sprite >> 12) & 0xF;
 			h->req.helmet = (join->sprite >> 8) & 0xF;
 			h->req.shield = (join->sprite >> 4) & 0xF;
-			h->req.weapon = join->sprite & 0xF;
+			h->req.weapon = join->weapon_id;
 
 			h->clr = 0; // from server
 
@@ -1989,7 +1989,7 @@ void LoadSprites()
 	Sprite* grid_grey_potion = LOAD_SPRITE("grid-grey-potion.xp");
 	static const WeaponInfo weapon_info[] = {
 		{20, 1.0f},//Alpha sword
-		{35, 1.0f}//Plus sword
+		{35, 1.5f}//Plus sword
 	};
 	static const ItemProto item_proto[] = 
 	{
@@ -2046,6 +2046,8 @@ void LoadSprites()
 		{ 0 }//i 41 is empty
 	};
 	item_proto_lib = item_proto;
+	static const int len = sizeof(item_proto)/sizeof(item_proto[0]) - 1;
+	item_proto_len = &len;
 }
 
 Sprite* GetSprite(const SpriteReq* req, int clr)
@@ -2055,7 +2057,7 @@ Sprite* GetSprite(const SpriteReq* req, int clr)
 	if (req->kind == SpriteReq::WOLF)
 	{
 		if (req->action == ACTION::NONE &&
-			req->weapon == WEAPON::NONE &&
+			req->weapon == PLAYER_WEAPON_INDEX::WEAPON_NONE &&
 			req->shield == SHIELD::NONE &&
 			req->helmet == HELMET::NONE &&
 			req->armor == ARMOR::NONE &&
@@ -2070,8 +2072,12 @@ Sprite* GetSprite(const SpriteReq* req, int clr)
 	if (req->action < 0 || req->action >= ACTION::SIZE)
 		return 0;
 
-	if (req->weapon < 0 || req->weapon >= WEAPON::SIZE)
-		return 0;
+	 if (
+		req->weapon < 0 ||
+	     (req->weapon >= *item_proto_len &&
+		 req->weapon < PLAYER_WEAPON_INDEX::WEAPON_NONE)
+		)
+	 	return 0;
 
 	if (req->shield < 0 || req->shield >= SHIELD::SIZE)
 		return 0;
@@ -2082,6 +2088,19 @@ Sprite* GetSprite(const SpriteReq* req, int clr)
 	if (req->armor < 0 || req->armor >= ARMOR::SIZE)
 		return 0;
 
+	int weapon_type = 0;
+	if (req->weapon != PLAYER_WEAPON_INDEX::WEAPON_NONE) {
+		switch (item_proto_lib[req->weapon].sub_kind)
+		{
+		case PLAYER_WEAPON_INDEX::CROSSBOW:
+		case PLAYER_WEAPON_INDEX::SWORD:
+			weapon_type = item_proto_lib[req->weapon].sub_kind;
+			break;
+		default:
+			weapon_type = 0;
+			break;
+		}
+	}
 	switch (req->mount)
 	{
 		case MOUNT::NONE:
@@ -2089,18 +2108,16 @@ Sprite* GetSprite(const SpriteReq* req, int clr)
 			switch (req->action)
 			{
 				case ACTION::NONE:
-					return player[clr][req->armor][req->helmet][req->shield][req->weapon];
-
+					return player[clr][req->armor][req->helmet][req->shield][weapon_type];
 				case ACTION::ATTACK:
-					if (req->weapon == WEAPON::REGULAR_CROSSBOW)
-						return player[clr][req->armor][req->helmet][req->shield][req->weapon];
+					if (weapon_type == PLAYER_WEAPON_INDEX::CROSSBOW)
+						return player[clr][req->armor][req->helmet][req->shield][weapon_type];
 					else
-						return player_attack[clr][req->armor][req->helmet][req->shield][req->weapon];
-
+						return player_attack[clr][req->armor][req->helmet][req->shield][weapon_type];
 				case ACTION::FALL:
 				case ACTION::DEAD:
 				case ACTION::STAND:
-					return player_fall[clr][req->armor][req->helmet][req->shield][req->weapon];
+					return player_fall[clr][req->armor][req->helmet][req->shield][weapon_type];
 			}
 			return 0;
 		}
@@ -2110,18 +2127,18 @@ Sprite* GetSprite(const SpriteReq* req, int clr)
 			switch (req->action)
 			{
 				case ACTION::NONE:
-					return wolfie[clr][req->armor][req->helmet][req->shield][req->weapon];
+					return wolfie[clr][req->armor][req->helmet][req->shield][weapon_type];
 
 				case ACTION::ATTACK:
-					if (req->weapon == WEAPON::REGULAR_CROSSBOW)
-						return wolfie[clr][req->armor][req->helmet][req->shield][req->weapon];
+					if (weapon_type == PLAYER_WEAPON_INDEX::CROSSBOW)
+						return wolfie[clr][req->armor][req->helmet][req->shield][weapon_type];
 					else
-						return wolfie_attack[clr][req->armor][req->helmet][req->shield][req->weapon];
+						return wolfie_attack[clr][req->armor][req->helmet][req->shield][weapon_type];
 
 				case ACTION::FALL:
 				case ACTION::DEAD:
 				case ACTION::STAND:
-					return wolfie_fall[clr][req->armor][req->helmet][req->shield][req->weapon];
+					return wolfie_fall[clr][req->armor][req->helmet][req->shield][weapon_type];
 			}	
 			return 0;
 		}
@@ -2180,7 +2197,7 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 			enemy->req.helmet = fast_rand() % 11 < eg->helmet ? HELMET::NONE : HELMET::REGULAR_HELMET;
 			enemy->req.shield = fast_rand() % 11 < eg->shield ? SHIELD::NONE : SHIELD::REGULAR_SHIELD;
 			enemy->req.weapon = fast_rand() % (eg->sword + eg->crossbow + 1) < eg->sword ?
-				WEAPON::REGULAR_SWORD : WEAPON::REGULAR_CROSSBOW;
+				3 : 9;//Alpha sword or crossbow
 			enemy->req.action = ACTION::NONE;
 
 			if (enemy->req.armor)
@@ -2226,18 +2243,18 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 				item->count = 1;
 				item->inst = 0;
 
-				if (enemy->req.weapon == WEAPON::REGULAR_SWORD)
-				{
-					int id = rand() % 4;
-					if (id >= 2)
-						id++; // there's a hole in sword ids :(
-					item->proto = item_proto_lib + id + 3;
-				}
-				else
-				{
-					item->proto = item_proto_lib + 9;
-				}
-
+				// if (enemy->req.weapon == WEAPON::REGULAR_SWORD)
+				// {
+				// 	int id = rand() % 4;
+				// 	if (id >= 2)
+				// 		id++; // there's a hole in sword ids :(
+				// 	item->proto = item_proto_lib + id + 3;
+				// }
+				// else
+				// {
+				// 	item->proto = item_proto_lib + 9;
+				// }
+				item->proto = &item_proto_lib[enemy->req.weapon];
 				item->purpose = Item::OWNED;
 				enemy->has[enemy->items].in_use = true;
 				enemy->has[enemy->items].item = item;
@@ -2320,7 +2337,7 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 		enemy->req.armor = ARMOR::NONE + ((r >> 2) & 1);
 		enemy->req.helmet = HELMET::NONE + ((r >> 3) & 1);
 		enemy->req.shield = SHIELD::NONE + ((r >> 4) & 1);
-		enemy->req.weapon = WEAPON::NONE + 1;// ((r >> 5) % 3);
+		enemy->req.weapon = 3;// ((r >> 5) % 3);//default alpha sword
 		enemy->req.action = ACTION::NONE;
 
 		if (enemy->req.armor)
@@ -2366,18 +2383,18 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 			item->count = 1;
 			item->inst = 0;
 
-			if (enemy->req.weapon == WEAPON::REGULAR_SWORD)
-			{
-				int id = rand() % 4;
-				if (id >= 2)
-					id++; // there's a hole in sword ids :(
-				item->proto = item_proto_lib + id + 3;
-			}
-			else
-			{
-				item->proto = item_proto_lib + 9;
-				
-			}
+			// if (enemy->req.weapon == WEAPON::REGULAR_SWORD)
+			// {
+			// 	int id = rand() % 4;
+			// 	if (id >= 2)
+			// 		id++; // there's a hole in sword ids :(
+			// 	item->proto = item_proto_lib + id + 3;
+			// }
+			// else
+			// {
+			// 	item->proto = item_proto_lib + 9;
+			// }
+			item->proto = &item_proto_lib[enemy->req.weapon]
 
 			item->purpose = Item::OWNED;
 			enemy->has[enemy->items].in_use = true;
@@ -2447,7 +2464,7 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 		buddy->req.armor = ARMOR::NONE + ((r >> 2) & 1);
 		buddy->req.helmet = HELMET::NONE + ((r >> 3) & 1);
 		buddy->req.shield = SHIELD::NONE + ((r >> 4) & 1);
-		buddy->req.weapon = WEAPON::NONE + 1; // ((r >> 5) % 3);
+		buddy->req.weapon = 3; // ((r >> 5) % 3);//alpha default
 		buddy->req.action = ACTION::NONE;
 
 		if (buddy->req.armor)
@@ -2493,17 +2510,18 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 			item->count = 1;
 			item->inst = 0;
 
-			if (buddy->req.weapon == WEAPON::REGULAR_SWORD)
-			{
-				int id = rand() % 4;
-				if (id >= 2)
-					id++; // there's a hole in sword ids :(
-				item->proto = item_proto_lib + id + 3;
-			}
-			else
-			{
-				item->proto = item_proto_lib + 9;
-			}
+			// if (buddy->req.weapon == WEAPON::REGULAR_SWORD)
+			// {
+			// 	int id = rand() % 4;
+			// 	if (id >= 2)
+			// 		id++; // there's a hole in sword ids :(
+			// 	item->proto = item_proto_lib + id + 3;
+			// }
+			// else
+			// {
+			// 	item->proto = item_proto_lib + 9;
+			// }
+			item->proto = &item_proto_lib[buddy->req.weapon];
 
 			item->purpose = Item::OWNED;
 			buddy->has[buddy->items].in_use = true;
@@ -2592,7 +2610,7 @@ Game* CreateGame(int water, float pos[3], float yaw, float dir, uint64_t stamp)
 	g->player.req.armor = ARMOR::NONE;
 	g->player.req.helmet = HELMET::NONE;
 	g->player.req.shield = SHIELD::NONE; // REGULAR_SHIELD;
-	g->player.req.weapon = WEAPON::NONE;
+	g->player.req.weapon = PLAYER_WEAPON_INDEX::WEAPON_NONE;
 	g->player.req.action = ACTION::NONE;
 
 	g->player.clr = 0;
@@ -2743,7 +2761,7 @@ void Game::ExecuteItem(int my_item)
 		{
 			if (inventory.my_item[my_item].in_use)
 			{
-				if (player.SetWeapon(PLAYER_WEAPON_INDEX::WEAPON_NONE))
+				if (player.SetWeapon((uint8_t)~0))
 				{
 					inventory.my_item[my_item].in_use = false;
 				}
@@ -3253,7 +3271,7 @@ bool Character::SetActionAttack(uint64_t stamp)
 	}
 	sprite = spr;
 
-	if (req.weapon == WEAPON::REGULAR_CROSSBOW)
+	if (item_proto_lib[req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 	{
 		anim = 0;
 		frame = 0;
@@ -3637,7 +3655,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 	}
 
 	if (player.req.action == ACTION::ATTACK && 
-		player.req.weapon == WEAPON::REGULAR_CROSSBOW)
+		item_proto_lib[player.req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 	{
 		io.x_force = 0;
 		io.y_force = 0;
@@ -3765,7 +3783,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 							h->target = enemy_ch;
 							h->target->followers++;
 
-							if (h->req.weapon == WEAPON::REGULAR_CROSSBOW)
+							if (item_proto_lib[h->req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 							{
 								min_target_dist = min_ed_archer;
 								max_target_dist = min_ed_archer + 3;
@@ -3908,7 +3926,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 					}
 
 					if (h->req.action == ACTION::ATTACK &&
-						h->req.weapon == WEAPON::REGULAR_CROSSBOW)
+						item_proto_lib[h->req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 					{
 						pio.x_force = 0;
 						pio.y_force = 0;
@@ -3981,7 +3999,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 				else
 				{
 					if (h->req.action == ACTION::ATTACK &&
-						h->req.weapon == WEAPON::REGULAR_CROSSBOW)
+						item_proto_lib[h->req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 					{
 						pio.x_force = 0;
 						pio.y_force = 0;
@@ -3998,7 +4016,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 				{
 					case ACTION::ATTACK:
 					{
-						switch (h->req.weapon)
+						switch (item_proto_lib[h->req.weapon].sub_kind)
 						{
 							case PLAYER_WEAPON_INDEX::SWORD:
 							{
@@ -4177,7 +4195,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 	{
 		case ACTION::ATTACK:
 		{
-			switch (player.req.weapon)
+			switch (item_proto_lib[player.req.weapon].sub_kind)
 			{
 				case PLAYER_WEAPON_INDEX::SWORD:
 				{
@@ -4393,7 +4411,7 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 	::Render(renderer, _stamp, terrain, world, water, 1.0, io.yaw, io.pos, lt,
 		width, height, ptr, player_inst, ss, perspective);
 
-	if (input.shoot /*&& !player.shooting*/ && player.req.weapon == WEAPON::REGULAR_CROSSBOW)
+	if (input.shoot /*&& !player.shooting*/ && item_proto_lib[player.req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 	{
 		// this should be done inside SetActionAttack() if weapon is crossbow
 
@@ -5468,8 +5486,8 @@ void Game::Render(uint64_t _stamp, AnsiCell* ptr, int width, int height)
 				(player.req.armor << 12) | 
 				(player.req.helmet << 8) |
 				(player.req.shield << 4) |
-				player.req.weapon; // 0xAHSW
-
+				0; // 0xAHSW
+			req_pose.weapon_id - player.req.weapon;
 			server->Send((const uint8_t*)&req_pose, sizeof(STRUCT_REQ_POSE));
 		}
 	}
@@ -6545,9 +6563,9 @@ void Game::StartContact(int id, int x, int y, int b)
 								
 								if (2 * cp2[0] - scene_shift < render_size[0])
 								{
-									if (player.req.weapon > 0)
+									if (player.req.weapon != (uint8_t)~0)
 									{
-										if (player.req.weapon == WEAPON::REGULAR_CROSSBOW)
+										if (item_proto_lib[player.req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW)
 										{
 											input.shoot = true;
 											input.shoot_xy[0] = cp[0];
@@ -7064,7 +7082,7 @@ void Game::OnMouse(GAME_MOUSE mouse, int x, int y)
 				if (input.contact[0].action == Input::Contact::TORQUE)
 				{
 
-					if (player.req.weapon == WEAPON::REGULAR_CROSSBOW && !input.shoot)
+					if (item_proto_lib[player.req.weapon].sub_kind == PLAYER_WEAPON_INDEX::CROSSBOW && !input.shoot)
 					{
 						input.shoot = true;
 						//input.shoot_xy[0] = cp[0];

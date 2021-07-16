@@ -5,6 +5,7 @@
 extern World* world;
 extern Sprite* inventory_sprite;
 const ItemProto* item_proto_lib;
+const int* item_proto_len;
 
 Item* CreateItem()
 {

@@ -2,8 +2,10 @@
 
 struct ItemProto;
 struct Item;
+struct WeaponInfo;
 
 extern const ItemProto* item_proto_lib;
+extern const int* item_proto_len;
 extern const WeaponInfo* weapon_info;
 
 Item* CreateItem();
@@ -119,9 +121,9 @@ struct Item
 
 enum PLAYER_WEAPON_INDEX
 {
-	WEAPON_NONE = 0,
-	SWORD,
-	CROSSBOW,
+	WEAPON_NONE = 255,//255 because item_proto[0] is mace
+	SWORD = 1, // typed out for sprite files
+	CROSSBOW = 2,
 	// --------
 	MACE,
 	HAMMER, // big ace too
