@@ -866,7 +866,7 @@ GameServer* Connect(const char* addr, const char* port, const char* path, const 
 	iResult = TCP_INIT();
 	if (iResult != 0)
 	{
-		printf("WSAStartup failed: %d\n", iResult);
+		fprintf(logfile, "WSAStartup failed: %d\n", iResult);
 		return 0;
 	}
 
@@ -884,7 +884,7 @@ GameServer* Connect(const char* addr, const char* port, const char* path, const 
 	iResult = getaddrinfo(hostname, portname, &hints, &result);
 	if (iResult != 0)
 	{
-		printf("getaddrinfo failed: %d\n", iResult);
+		fprintf(logfile, "getaddrinfo failed: %d\n", iResult);
 		TCP_CLEANUP();
 		return 0;
 	}
@@ -893,23 +893,23 @@ GameServer* Connect(const char* addr, const char* port, const char* path, const 
 	server_socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	if (server_socket == INVALID_TCP_SOCKET)
 	{
-		printf("socket creation failed...\n");
+		fprintf(logfile, "socket creation failed...\n");
 		TCP_CLEANUP();
 		return 0;
 	}
 	else
-		printf("Socket successfully created..\n");
+		fprintf(logfile, "Socket successfully created..\n");
 
 	// connect the client socket to server socket 
 	if (connect(server_socket, result->ai_addr, (int)result->ai_addrlen) != 0)
 	{
-		printf("connection with the server failed...\n");
+		fprintf(logfile, "connection with the server failed...\n");
 		TCP_CLOSE(server_socket);
 		TCP_CLEANUP();
 		return 0;
 	}
 	else
-		printf("connected to the server..\n");
+		fprintf(logfile, "connected to the server..\n");
 
     int optval = 1;
     if (setsockopt(server_socket, SOL_SOCKET, SO_KEEPALIVE, (const char*)&optval, sizeof(optval)) != 0)
@@ -1021,7 +1021,7 @@ GameServer* Connect(const char* addr, const char* port, const char* path, const 
 	}
 
 	int ID = rsp_join.id;
-	printf("connected with ID:%d/%d\n", ID, rsp_join.maxcli);
+	fprintf(logfile, "connected with ID:%d/%d\n", ID, rsp_join.maxcli);
 
 	GameServer* gs = (GameServer*)malloc(sizeof(GameServer));
 	gs->server_socket = server_socket;
@@ -1361,8 +1361,6 @@ int main(int argc, char* argv[])
 		}
     }
 
-    printf("exec path: %s\n", argv[0]);
-    printf("BASE PATH: %s\n", base_path);
 
     /*
     int c16 = 13;
@@ -1435,6 +1433,8 @@ int main(int argc, char* argv[])
 	*/
 
     bool term = false;
+	char* logpath = 0;
+
     for (int p=1; p<argc; p++)
     {
         if (strcmp(argv[p],"-term")==0)
@@ -1447,9 +1447,25 @@ int main(int argc, char* argv[])
 				p++;
 				url = argv[p];
 			}
+			else
+			if (strcmp(argv[p], "-log") == 0)
+			{
+				p++;
+				logpath = argv[p];
+			}
 		}
-    }
-
+	}
+	//for pure term output
+	if (logpath)
+	{
+		logfile = fopen(logpath,"w");
+		if (!logpath)
+			logfile = stdout;
+	}
+	else
+		logfile = stdout;
+	fprintf(logfile, "exec path: %s\n", argv[0]);
+	fprintf(logfile, "BASE PATH: %s\n", base_path);
 	// NET_TODO:
 	// if url is given try to open connection
 	GameServer* gs = 0;
@@ -1494,7 +1510,7 @@ int main(int argc, char* argv[])
             gs = Connect(addr, port, path, user);
             if (!gs)
             {
-                printf("Couldn't connect to server, starting solo ...\n");
+                fprintf(logfile, "Couldn't connect to server, starting solo ...\n");
             }
         }
 
@@ -1663,7 +1679,7 @@ int main(int argc, char* argv[])
     if (!term_env)
         term_env = "";
 
-    printf("TERM=%s\n",term_env);
+    fprintf(logfile, "TERM=%s\n",term_env);
 
     if (strcmp( term_env, "linux" ) == 0)
     {
@@ -1701,11 +1717,11 @@ int main(int argc, char* argv[])
             GetWH(wh);
             mouse_x = wh[0]/2;
             mouse_y = wh[1]/2;
-            printf("connected to gpm\n");
+            fprintf(logfile, "connected to gpm\n");
         }
         else
         {
-            printf("failed to connect to gpm\n");
+            fprintf(logfile, "failed to connect to gpm\n");
             // exit(0);
         }
 #endif // USE_GPM
@@ -1713,7 +1729,7 @@ int main(int argc, char* argv[])
     else
     if (strncmp(term_env,"xterm",5)==0)
     {
-        printf("VIRTUAL TERMINAL EMULGLATOR\n");
+        fprintf(logfile, "VIRTUAL TERMINAL EMULGLATOR\n");
 
         /*
             1.  MANDATORY: install -gumix-*... fonts
@@ -1770,7 +1786,7 @@ int main(int argc, char* argv[])
         printf("\n");
     }
     else
-        printf("UNKNOWN TERMINAL\n");
+        fprintf(logfile, "UNKNOWN TERMINAL\n");
 
     // try opening js device
     int gamepad_axes = 0;
@@ -1793,7 +1809,7 @@ int main(int argc, char* argv[])
         if (old_action.sa_handler != SIG_IGN)
             sigaction(signals[i], &new_action, NULL);
     }
-
+	fflush(logfile);
     running = true;
 
     /*
@@ -2690,11 +2706,11 @@ int main(int argc, char* argv[])
 
     SetScreen(false);
 
-    printf("FPS: %f (%dx%d)\n", frames * 1000000.0 / (end-begin), wh[0], wh[1]);
+    fprintf(logfile, "FPS: %f (%dx%d)\n", frames * 1000000.0 / (end-begin), wh[0], wh[1]);
 
 #else
 
-    printf("Currently -term parameter is unsupported on Windows\n");
+    fprintf(logfile, "Currently -term parameter is unsupported on Windows\n");
 
 #endif
 
@@ -2705,6 +2721,6 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
 	_CrtDumpMemoryLeaks();
 #endif
-
+	fclose(logfile);
 	return 0;
 }

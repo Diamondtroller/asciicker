@@ -278,7 +278,7 @@ void ChatLog(const char* fmt, ...)
 	// we dont want to printf in -term mode!
 	va_list args;
 	va_start(args,fmt);
-	vprintf(fmt,args);
+	vfprintf(logfile, fmt,args);
 	va_end(args);
 }
 
