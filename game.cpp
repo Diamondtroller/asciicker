@@ -42,7 +42,7 @@ void ChatLog(const char* fmt, ...)
 	
 	va_list args;
 	va_start(args,fmt);
-	vprintf(fmt,args);
+	vfprintf(logfile, fmt,args);
 	va_end(args);
 }
 

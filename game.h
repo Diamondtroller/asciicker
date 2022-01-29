@@ -129,6 +129,7 @@ struct Server
 };
 
 extern Server* server; // global!
+inline FILE* logfile; //global!
 
 struct Game
 {
